@@ -4,31 +4,54 @@
 #include <pthread.h>
 #include <string>
 #include <type_traits>
+#include <cmath>
 
-int* getInput(int* array);
 int getFileSize();
 int* getRawInput(int*);
 int resizeArray();
 int* fillResized(int*, int*, int);
+//Compilation error int** splitDimensions(int*, int**, int);
 
 int main() {
     int File_Size = getFileSize();
     std::cout << "file size is " << File_Size << " characters \n";
 
     int a[File_Size];
-    int *b = getRawInput(a);
-    int n = resizeArray();
-    std::cout << "new size is " << n << '\n';
+    int *raw_Input = getRawInput(a);
+    int reduced_size = resizeArray();
+    std::cout << "new size is " << reduced_size << '\n';
 
-    int q[n];
-    int *r = fillResized(b, q, n);
+    int q[reduced_size];
+    int *reduced_Input = fillResized(raw_Input, q, reduced_size);
 
     std::cout << "from function 'main': \n";
-    for(int i = 0; i<n; i++) {
-        std::cout << "position " << i << " is the number " << r[i] << "\n";
+    for(int i = 0; i < reduced_size; i++) {
+        std::cout << "position " << i << " is the number " << reduced_Input[i] << "\n";
     }
 
+    int width = sqrt(reduced_size);
+    int x[width][width];
+    //Compilation error int *Board = splitDimensions(reduced_Input, x, width);
+
 }
+/* Compilation error
+int** splitDimensions(int* one_Dimension, int two_Dimensions[][], int width) {
+    //int count = 0;
+    int k = 0;
+    for(int i = 0; i < width; i++) {
+        for(int j = 0; j < width; j++) {
+            two_Dimensions[i][j] = one_Dimension[k];
+            //std::cout << "height " << i << " width " << j << " is the number " << two_Dimensions[i][j] << " count " << count <<"\n";
+            //count++;
+            k++;
+
+        }
+    }
+
+    return two_Dimensions;
+}
+
+*/
 
 int getFileSize() {
     //opening file
