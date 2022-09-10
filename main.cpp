@@ -1,22 +1,48 @@
 #include <ios>
 #include <iostream>
 #include <fstream>
+#include <ostream>
 #include <pthread.h>
 #include <string>
 #include <type_traits>
 #include <cmath>
+#include <vector>
 
 int getFileSize();
 int* getRawInput(int*);
 int resizeArray();
 int* fillResized(int*, int*, int);
-//Compilation error int** splitDimensions(int*, int**, int);
+
+
+
+class Board {
+    private:
+    std::vector<int> state;
+    public:
+    Board(std::vector<int> in_Board) {
+        state = in_Board;
+    }
+
+    friend std::ostream& operator<<(std::ostream& stream, const Board& board);
+
+
+};
+
+std::ostream& operator<<(std::ostream& stream, const Board& board) {
+    std::cout << "output stream of Board.state: \n";
+    for(int i = 0; i<board.state.size(); i++) {
+    stream << board.state[i] << '\n';
+    }
+    return stream;
+}
+
+
 
 int main() {
     int File_Size = getFileSize();
     std::cout << "file size is " << File_Size << " characters \n";
 
-    int a[File_Size];
+    int a[File_Size];                       //allocating array in the scope of main
     int *raw_Input = getRawInput(a);
     int reduced_size = resizeArray();
     std::cout << "new size is " << reduced_size << '\n';
@@ -30,28 +56,17 @@ int main() {
     }
 
     int width = sqrt(reduced_size);
-    int x[width][width];
-    //Compilation error int *Board = splitDimensions(reduced_Input, x, width);
-
-}
-/* Compilation error
-int** splitDimensions(int* one_Dimension, int two_Dimensions[][], int width) {
-    //int count = 0;
-    int k = 0;
-    for(int i = 0; i < width; i++) {
-        for(int j = 0; j < width; j++) {
-            two_Dimensions[i][j] = one_Dimension[k];
-            //std::cout << "height " << i << " width " << j << " is the number " << two_Dimensions[i][j] << " count " << count <<"\n";
-            //count++;
-            k++;
-
-        }
+    std::vector<int> input_Vector;
+    std::cout << "inputting array into std::vector: \n";
+    for(int i = 0; i < reduced_size; i++) {
+    input_Vector.push_back(reduced_Input[i]);
+    std::cout << input_Vector[i] << '\n';
     }
 
-    return two_Dimensions;
-}
+    Board start_State = input_Vector;
+    std::cout << start_State;
 
-*/
+}
 
 int getFileSize() {
     //opening file
