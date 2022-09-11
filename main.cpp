@@ -1,6 +1,7 @@
 #include <ios>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 #include <ostream>
 #include <pthread.h>
 #include <string>
@@ -18,9 +19,11 @@ int* fillResized(int*, int*, int);
 class Board {
     private:
     std::vector<int> state;
+    int width;
     public:
     Board(std::vector<int> in_Board) {
         state = in_Board;
+        width = sqrt(in_Board.size());
     }
 
     ~Board() {
@@ -29,7 +32,7 @@ class Board {
     }
 
     int Width() const {
-        return std::sqrt(state.size());
+        return width;
     }
 
     int& operator[](unsigned int index) {
