@@ -23,17 +23,35 @@ class Board {
         state = in_Board;
     }
 
+    ~Board() {
+        state.clear();
+        state.shrink_to_fit();
+    }
+
+    int Width() const {
+        return std::sqrt(state.size());
+    }
+
+    int& operator[](unsigned int index) {
+        return state[index];
+    }
+
     friend std::ostream& operator<<(std::ostream& stream, const Board& board);
 
 
 };
 
+
+
 std::ostream& operator<<(std::ostream& stream, const Board& board) {
-    std::cout << "output stream of Board.state: \n";
-    for(int i = 0; i<board.state.size(); i++) {
-    stream << board.state[i] << '\n';
+    //Debug std::cout << "output stream of Board.state: \n";
+    for(int i = 0; i<board.Width(); i++) {
+    for(int j = board.Width()*i; j<board.Width()*(i+1); j++) {
+    stream << board.state[j] << " | ";
     }
-    return stream;
+    std::cout << '\n';
+    }
+return stream;
 }
 
 
@@ -50,21 +68,24 @@ int main() {
     int q[reduced_size];
     int *reduced_Input = fillResized(raw_Input, q, reduced_size);
 
-    std::cout << "from function 'main': \n";
+    /*Debug std::cout << "from function 'main' reduced size array: \n";
     for(int i = 0; i < reduced_size; i++) {
         std::cout << "position " << i << " is the number " << reduced_Input[i] << "\n";
     }
+    */
 
     int width = sqrt(reduced_size);
     std::vector<int> input_Vector;
-    std::cout << "inputting array into std::vector: \n";
+    //Debug std::cout << "inputting array into std::vector: \n";
     for(int i = 0; i < reduced_size; i++) {
     input_Vector.push_back(reduced_Input[i]);
-    std::cout << input_Vector[i] << '\n';
+    //Debug std::cout << input_Vector[i] << '\n';
     }
 
     Board start_State = input_Vector;
-    std::cout << start_State;
+    std::cout << "The starting board is: \n" << start_State;
+
+    std::cout << "Board object start_State width is: \n" << start_State.Width() << '\n';
 
 }
 
