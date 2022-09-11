@@ -1,29 +1,48 @@
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <stack>
 
 int getFileSize();
 int* getRawInput(int*);
 int resizeArray();
 int* fillResized(int*, int*, int);
 
+enum BitTypes : char {
+	QUEEN = 1U,
+	ATTACKED = 2U,
+};
+
+struct Point {
+	std::size_t x;
+	std::size_t y;
+};
+
+std::ostream&
+operator<<(std::ostream& stream, Point const& point) {
+	stream << '(' << point.x << ", " << point.y << ')';
+	return stream;
+}
+
 
 class Board {
   private:
-	std::vector<std::byte> state;
+	std::vector<std::byte> m_state;
 	std::size_t m_width = 0U;
 
   public:
 	explicit Board(std::vector<std::byte>& in_Board, std::size_t const width)
-		: state(in_Board), m_width(width) {
-		assert(m_width * m_width == state.size());
+		: m_state(in_Board), m_width(width) {
+		assert(m_width * m_width == m_state.size());
 	}
 
 	explicit Board() = default;
@@ -35,18 +54,20 @@ class Board {
 
 	void
 	clear() {
-		state.clear();
+		m_state.clear();
 		m_width = 0U;
 	}
 
+	[[nodiscard]]
 	std::byte&
-	operator[](unsigned int index) {
-		return state[index];
+	operator[](Point const point) {
+		return m_state[(m_width * point.y) + point.x];
 	}
 
+	[[nodiscard]]
 	std::byte
-	operator[](unsigned int index) const {
-		return state[index];
+	operator[](Point const point) const {
+		return m_state[(m_width * point.y) + point.x];
 	}
 
 	friend std::istream& operator>>(std::istream& is, Board& board);
@@ -65,9 +86,9 @@ operator>>(std::istream& is, Board& board) {
 		if (c == ',') continue;
 		if (c == '\n' || c == '\r') {
 			if (board.m_width == 0U) {
-				board.m_width = board.state.size();
+				board.m_width = board.m_state.size();
 				size_Of_Board = board.m_width * board.m_width;
-				board.state.reserve(board.m_width * board.m_width);
+				board.m_state.reserve(board.m_width * board.m_width);
 			}
 			continue;
 		}
@@ -76,8 +97,8 @@ operator>>(std::istream& is, Board& board) {
 			is.setstate(std::ios::failbit);
 			return is;
 		}
-		board.state.push_back(static_cast<std::byte>(c != '0'));
-		if (board.state.size() == size_Of_Board) {
+		board.m_state.push_back(static_cast<std::byte>(c != '0'));
+		if (board.m_state.size() == size_Of_Board) {
 			break;
 		}
 	}
@@ -87,16 +108,12 @@ operator>>(std::istream& is, Board& board) {
 
 std::ostream&
 operator<<(std::ostream& stream, const Board& board) {
-	stream << "output stream of Board.state: \n";
-	stream << "Board.state size: \n";
-	stream << board.state.size() << '\n';
-	for (auto c : board.state) {
-		stream << static_cast<int>(c) << ' ';
-	}
-	stream << '\n';
-	for (auto i = 0U; i < board.Width(); i++) {
-		for (auto j = board.Width() * i; j < board.Width() * (i + 1); j++) {
-			stream << static_cast<int>(board.state[j]) << " | ";
+	stream << "Board.m_state size:" << board.m_state.size() << '\n';
+	stream << "output stream of Board.m_state: \n";
+
+	for (auto y = 0U; y < board.Width(); y++) {
+		for (auto x = 0U; x < board.Width(); x++) {
+			stream << static_cast<int>(board[Point{x, y}]) << " | ";
 		}
 		stream << '\n';
 	}
@@ -118,6 +135,51 @@ getFile(std::string const input_file) {
 	return ss;
 }
 
+[[nodiscard]]
+Point findFirstQueen(Board const& board) {
+	for (auto y = 0U; y < board.Width(); y++) {
+		for (auto x = 0U; x < board.Width(); x++) {
+			auto const p = Point{x, y};
+			if(static_cast<unsigned>(board[p]) & BitTypes::QUEEN) return p;
+		}
+	}	
+}
+
+void setAttacks(Board& board, Point const recentQueen) {
+	std::cout << "recent queen is at " << recentQueen << '\n';
+
+	for(auto x = 0U; x < board.Width();x++) {
+		auto const point = Point{x, recentQueen.y};
+		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+
+	}
+
+	for(auto y = 0U; y < board.Width();y++) {
+		auto const point = Point{recentQueen.x, y};
+		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+
+	}
+
+	auto const m = std::min(recentQueen.x, recentQueen.y);
+	auto point = Point{recentQueen.x - m, recentQueen.y - m};
+
+	while(point.x < board.Width() && point.y < board.Width()) {
+		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+		point.x++;
+		point.y++;
+	}
+
+	point = Point{recentQueen.x - m, recentQueen.y + m};
+
+	while(point.x < board.Width() && point.y >=0) {
+		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+	point.x++;
+	point.y--;
+	}
+
+	
+}
+
 int
 main() {
 	try {
@@ -127,7 +189,14 @@ main() {
 		content_Of_File >> board;
 		std::cout << "======================================== \n";
 		std::cout << board;
+		auto queen_Stack = std::stack<Point, std::vector<Point>>{};
+		queen_Stack.push(findFirstQueen(board));
+		std::cout << "first queen is at " << queen_Stack.top() << '\n';
+		setAttacks(board, queen_Stack.top());
+		std::cout << board;
+
 	} catch (std::exception& ex) {
 		std::cerr << ex.what();
 	}
+
 }
