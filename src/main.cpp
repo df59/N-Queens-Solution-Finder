@@ -27,6 +27,8 @@ struct Point {
 	std::size_t y;
 };
 
+using QueenStack = std::stack<Point, std::vector<Point>>;
+
 std::ostream&
 operator<<(std::ostream& stream, Point const& point) {
 	stream << '(' << point.x << ", " << point.y << ')';
@@ -145,7 +147,8 @@ Point findFirstQueen(Board const& board) {
 	}	
 }
 
-void setAttacks(Board& board, Point const recentQueen) {
+void updateAttacks(Board& board, QueenStack const& queen_stack) {
+	auto const recentQueen = queen_stack.top();
 	std::cout << "recent queen is at " << recentQueen << '\n';
 
 	for(auto x = 0U; x < board.Width();x++) {
@@ -171,15 +174,21 @@ void setAttacks(Board& board, Point const recentQueen) {
 
 	point = Point{recentQueen.x - m, recentQueen.y + m};
 
-	while(point.x < board.Width() && point.y >=0) {
+	while(point.x < board.Width()) {
+		std::cout << point << '\n';
 		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
-	point.x++;
-	point.y--;
+		point.x++;
+		if(point.y == 0) break;
+		point.y--;
 	}
 
 	
 }
 
+void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
+	queen_stack.push(queen);
+	updateAttacks(board, queen_stack);
+}
 int
 main() {
 	try {
@@ -189,11 +198,12 @@ main() {
 		content_Of_File >> board;
 		std::cout << "======================================== \n";
 		std::cout << board;
-		auto queen_Stack = std::stack<Point, std::vector<Point>>{};
+		auto queen_Stack = QueenStack{};
 		queen_Stack.push(findFirstQueen(board));
 		std::cout << "first queen is at " << queen_Stack.top() << '\n';
-		setAttacks(board, queen_Stack.top());
+		updateAttacks(board, queen_Stack);
 		std::cout << board;
+
 
 	} catch (std::exception& ex) {
 		std::cerr << ex.what();
