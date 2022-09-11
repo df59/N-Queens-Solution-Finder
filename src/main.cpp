@@ -27,7 +27,7 @@ struct Point {
 	std::size_t y;
 };
 
-using QueenStack = std::stack<Point, std::vector<Point>>;
+using QueenStack = std::vector<Point>;
 
 std::ostream&
 operator<<(std::ostream& stream, Point const& point) {
@@ -148,7 +148,7 @@ Point findFirstQueen(Board const& board) {
 }
 
 void updateAttacks(Board& board, QueenStack const& queen_stack) {
-	auto const recentQueen = queen_stack.top();
+	auto const recentQueen = queen_stack.back();
 	std::cout << "recent queen is at " << recentQueen << '\n';
 
 	for(auto x = 0U; x < board.Width();x++) {
@@ -186,7 +186,7 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 }
 
 void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
-	queen_stack.push(queen);
+	queen_stack.push_back(queen);
 	updateAttacks(board, queen_stack);
 }
 int
@@ -199,8 +199,8 @@ main() {
 		std::cout << "======================================== \n";
 		std::cout << board;
 		auto queen_Stack = QueenStack{};
-		queen_Stack.push(findFirstQueen(board));
-		std::cout << "first queen is at " << queen_Stack.top() << '\n';
+		queen_Stack.push_back(findFirstQueen(board));
+		std::cout << "first queen is at " << queen_Stack.back() << '\n';
 		updateAttacks(board, queen_Stack);
 		std::cout << board;
 
