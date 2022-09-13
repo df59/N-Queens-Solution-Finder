@@ -91,13 +91,19 @@ class Board {
 	[[nodiscard]]
 	std::byte&
 	operator[](Point const point) {
+		std::cout << "from [] overloaded operator &ref in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
+		// return m_state.at((m_width * point.y) + point.x);
 		return m_state[(m_width * point.y) + point.x];
+
 	}
 
 	[[nodiscard]]
 	std::byte
 	operator[](Point const point) const {
+		std::cout << "from [] overloaded operator in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
+		// return m_state.at((m_width * point.y) + point.x);
 		return m_state[(m_width * point.y) + point.x];
+
 	}
 
 	friend std::istream& operator>>(std::istream& is, Board& board);
@@ -223,21 +229,23 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 
 void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
 	std::cout << "adding queen at position " << queen << '\n';
+	// attempt to fix bug queen_stack.reserve(queen_stack.capacity()+1);
 	queen_stack.push_back(queen);
-	//std::cout << "debug pushback worked \n";
+	std::cout << "debug pushback worked \n";
 	updateAttacks(board, queen_stack);
-	//std::cout << "debug update Attacks was called \n";
+	std::cout << "debug update Attacks was called \n";
 	std::cout << "current board: \n" << board;
 }
 
 void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) {
-	//std::cout << "debug findNextQueen called \n";
-	// std::cout << "debug starting queen value is " << board.StartQueen().x << ',' << board.StartQueen().y << '\n';
-	// std::cout << "debug startingpoint.x: " << starting_point.x << "\n debug startingpoint.y: " << starting_point.y << '\n';
+	 std::cout << "debug findNextQueen called \n";
+	 std::cout << "debug starting queen value is " << board.StartQueen().x << ',' << board.StartQueen().y << '\n';
+	 std::cout << "debug startingpoint.x: " << starting_point.x << "\n debug startingpoint.y: " << starting_point.y << '\n';
 	if(starting_point.y == board.StartQueen().y) {
+		std::cout << "calling function from starting queen position. this is a cycle. no solution was found \n";
 		return;
 	}
-	// if(queen_stack.empty()) {
+	//  if(queen_stack.empty()) {
 	// 	std::cout << "all queens were popped off the stack. There must be no solution. \n";
 	// 	return;
 	// }
@@ -247,6 +255,7 @@ void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) 
 		for(auto x = starting_point.x; x != board.StartQueen().x; x = (x + 1) % (board.Width())) {
 			auto point = Point{x, starting_point.y};
 			if(static_cast<unsigned>(board[point]) == 0U) {
+				std::cout << "debug board[point]: " << static_cast<int>(board[point]) << '\n';
 				//std::cout << "debug static_cast<unsigned>(board[point]) == 0U returned true \n";
 				addQueen(board, queen_stack, point);
 				point.x = static_cast<std::size_t>((board.StartQueen().x+1) % board.Width());
