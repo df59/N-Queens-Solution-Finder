@@ -19,7 +19,7 @@ int* fillResized(int*, int*, int);
 
 enum BitTypes : char {
 	QUEEN = 1U,
-	ATTACKED = 2U,
+	ATTACKED = 1U,
 };
 
 struct Point {
@@ -91,7 +91,7 @@ class Board {
 	[[nodiscard]]
 	std::byte&
 	operator[](Point const point) {
-		std::cout << "from [] overloaded operator &ref in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
+		//std::cout << "from [] overloaded operator &ref in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
 		// return m_state.at((m_width * point.y) + point.x);
 		return m_state[(m_width * point.y) + point.x];
 
@@ -100,7 +100,7 @@ class Board {
 	[[nodiscard]]
 	std::byte
 	operator[](Point const point) const {
-		std::cout << "from [] overloaded operator in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
+		//std::cout << "from [] overloaded operator in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
 		// return m_state.at((m_width * point.y) + point.x);
 		return m_state[(m_width * point.y) + point.x];
 
@@ -144,8 +144,7 @@ operator>>(std::istream& is, Board& board) {
 
 std::ostream&
 operator<<(std::ostream& stream, const Board& board) {
-	stream << "Board.m_state size:" << board.m_state.size() << '\n';
-	stream << "output stream of Board.m_state: \n";
+	stream << "Current board: \n";
 
 	for (auto y = 0U; y < board.Width(); y++) {
 		for (auto x = 0U; x < board.Width(); x++) {
@@ -180,20 +179,32 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	//debug std::cout << "recent queen is at " << recentQueen << '\n';
 
 	for(auto x = 0U; x < board.Width();x++) {
+		std::cout << "first for loop\n";
 		auto const point = Point{x, recentQueen.y};
-		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+		assert(point.x < board.Width());
+		assert(point.y < board.Width());
+		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
+		board[point] = static_cast<std::byte>(1U);
 	}
 
 	for(auto y = 0U; y < board.Width();y++) {
+		std::cout << "second for loop\n";
 		auto const point = Point{recentQueen.x, y};
-		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+		assert(point.x < board.Width());
+		assert(point.y < board.Width());
+		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
+		board[point] = static_cast<std::byte>(1U);
 	}
 
 	auto const m = std::min(recentQueen.x, recentQueen.y);
 	auto point = Point{recentQueen.x - m, recentQueen.y - m};
 
 	while(point.x < board.Width() && point.y < board.Width()) {
-		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+		std::cout << "first while loop\n" << "m value " << m << '\n';
+		assert(point.x < board.Width());
+		assert(point.y < board.Width());
+		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
+		board[point] = static_cast<std::byte>(1U);
 		point.x++;
 		point.y++;
 	}
@@ -202,9 +213,13 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	point = Point{recentQueen.x - m, recentQueen.y + m};
 	
 
-	while(point.x < board.Width()) {
-		//debug std::cout << point << '\n';
-		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+	while(point.x < board.Width() && point.y < board.Width()) {
+		std::cout << "second while loop\n" << "m value " << m << '\n';// << "recentQueen.x value " << recentQueen.x << '\n' << "recentqueen.y value " << recentQueen.y << '\n';
+		assert(point.x < board.Width());
+		assert(point.y < board.Width());
+		//debug //debug std::cout << point << '\n';
+		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
+		board[point] = static_cast<std::byte>(1U);
 		point.x++;
 		if(point.y == 0) break;
 		point.y--;
@@ -214,33 +229,47 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	point = Point{recentQueen.x - big, recentQueen.y + big};
 	
 
-	while(point.x < board.Width()) {
-		//debug std::cout << point << '\n';
-		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
+	while(point.x < board.Width() && point.y < board.Width()) {
+		std::cout << "third while loop\n" << "big value " << big << '\n';
+		assert(point.x < board.Width());
+		assert(point.y < board.Width());
+	// 	//debug std::cout << point << '\n';
+	// 	std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
+		board[point] = static_cast<std::byte>(1U);
 		point.x++;
 		if(point.y == 0) break;
 		point.y--;
 	}
-	}
 
-	std::cout << "board after updating attacks: \n" << board;
+	
+	 }
+
+	//debug std::cout << "board after updating attacks: \n" << board;
 	
 }
 
 void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
 	std::cout << "adding queen at position " << queen << '\n';
 	// attempt to fix bug queen_stack.reserve(queen_stack.capacity()+1);
+	assert(queen.x < board.Width());
+	assert(queen.y < board.Width());
+	std::cout << queen_stack.back().x;
+	std::cout << queen_stack.back().y;
 	queen_stack.push_back(queen);
-	std::cout << "debug pushback worked \n";
+	//debug std::cout << "debug pushback worked \n";
+	assert(queen_stack.back().x < board.Width());
+	assert(queen_stack.back().y < board.Width());
+	std::cout << queen_stack.back().x;
+	std::cout << queen_stack.back().y;
 	updateAttacks(board, queen_stack);
-	std::cout << "debug update Attacks was called \n";
-	std::cout << "current board: \n" << board;
+	//debug std::cout << "debug update Attacks was called \n";
+	std::cout << board;
 }
 
 void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) {
-	 std::cout << "debug findNextQueen called \n";
-	 std::cout << "debug starting queen value is " << board.StartQueen().x << ',' << board.StartQueen().y << '\n';
-	 std::cout << "debug startingpoint.x: " << starting_point.x << "\n debug startingpoint.y: " << starting_point.y << '\n';
+	//debug std::cout << "debug findNextQueen called \n";
+	//debug std::cout << "debug starting queen value is " << board.StartQueen().x << ',' << board.StartQueen().y << '\n';
+	//debug std::cout << "debug startingpoint.x: " << starting_point.x << "\n debug startingpoint.y: " << starting_point.y << '\n';
 	if(starting_point.y == board.StartQueen().y) {
 		std::cout << "calling function from starting queen position. this is a cycle. no solution was found \n";
 		return;
@@ -255,7 +284,7 @@ void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) 
 		for(auto x = starting_point.x; x != board.StartQueen().x; x = (x + 1) % (board.Width())) {
 			auto point = Point{x, starting_point.y};
 			if(static_cast<unsigned>(board[point]) == 0U) {
-				std::cout << "debug board[point]: " << static_cast<int>(board[point]) << '\n';
+				//debug std::cout << "debug board[point]: " << static_cast<int>(board[point]) << '\n';
 				//std::cout << "debug static_cast<unsigned>(board[point]) == 0U returned true \n";
 				addQueen(board, queen_stack, point);
 				point.x = static_cast<std::size_t>((board.StartQueen().x+1) % board.Width());
