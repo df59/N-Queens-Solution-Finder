@@ -40,6 +40,8 @@ class Board {
   private:
 	std::vector<std::byte> m_state;
 	std::size_t m_width = 0U;
+	Point m_start_queen;
+
 
   public:
 	explicit Board(std::vector<std::byte>& in_Board, std::size_t const width)
@@ -59,6 +61,32 @@ class Board {
 		m_state.clear();
 		m_width = 0U;
 	}
+
+	void
+	reset() {
+		for(auto i = 0U; i < (m_width*m_width); i++){
+			m_state[i] >>= 8;
+		}
+	}
+
+	[[nodiscard]] Point
+	StartQueen() {
+		return m_start_queen;
+	}
+
+	[[nodiscard]]
+	Point findFirstQueen(Board const& board) {
+	for (auto y = 0U; y < board.Width(); y++) {
+		for (auto x = 0U; x < board.Width(); x++) {
+			auto const p = Point{x, y};
+			if(static_cast<unsigned>(board[p]) & BitTypes::QUEEN) {
+				m_start_queen = p;
+				return p;
+			}
+		}
+	}	
+}
+
 
 	[[nodiscard]]
 	std::byte&
@@ -137,19 +165,12 @@ getFile(std::string const input_file) {
 	return ss;
 }
 
-[[nodiscard]]
-Point findFirstQueen(Board const& board) {
-	for (auto y = 0U; y < board.Width(); y++) {
-		for (auto x = 0U; x < board.Width(); x++) {
-			auto const p = Point{x, y};
-			if(static_cast<unsigned>(board[p]) & BitTypes::QUEEN) return p;
-		}
-	}	
-}
-
 void updateAttacks(Board& board, QueenStack const& queen_stack) {
-	auto const recentQueen = queen_stack.back();
-	std::cout << "recent queen is at " << recentQueen << '\n';
+	board.reset();
+	for(auto i : queen_stack) {
+	std::cout << "updating attacks for queen at: " << i.x << ',' << i.y << '\n';
+	auto const recentQueen = i;
+	//debug std::cout << "recent queen is at " << recentQueen << '\n';
 
 	for(auto x = 0U; x < board.Width();x++) {
 		auto const point = Point{x, recentQueen.y};
@@ -175,20 +196,70 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	point = Point{recentQueen.x - m, recentQueen.y + m};
 
 	while(point.x < board.Width()) {
-		std::cout << point << '\n';
+		//debug std::cout << point << '\n';
 		board[point] = static_cast<std::byte>(static_cast<unsigned>(board[point]) | BitTypes::ATTACKED);
 		point.x++;
 		if(point.y == 0) break;
 		point.y--;
 	}
+	}
 
+	//debug std::cout << "board after updating attacks: \n" << board;
 	
 }
 
 void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
+	std::cout << "adding queen at position " << queen << '\n';
 	queen_stack.push_back(queen);
 	updateAttacks(board, queen_stack);
+	std::cout << "current board: \n" << board;
 }
+
+void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) {
+	// if(queen_stack.empty()) {
+	// 	std::cout << "all queens were popped off the stack. There must be no solution. \n";
+	// 	return;
+	// }
+	for(auto y = starting_point.y; y < board.Width(); y++) {
+		for(auto x = starting_point.x; x < board.Width(); x++) {
+			auto const point = Point{x, y};
+			if(static_cast<unsigned>(board[point]) == 0U) {
+				addQueen(board, queen_stack, point);
+				break;
+				//findNextQueen(board, queen_stack);
+				//add basecase for findNextQueen
+			} else if (static_cast<size_t>(point.x == (board.Width()-1)) && point.y != board.StartQueen().y) {
+				std::cout << "no valid space in this row. need to pop the stack to a previous state. \n";
+				queen_stack.pop_back();
+				if(queen_stack.empty()) {
+					std::cout << "all queens were popped off the stack. There must be no solution. \n";
+					return;
+				}
+				updateAttacks(board, queen_stack);
+				Point next_start = queen_stack.back();
+				next_start.x++;
+				findNextQueen(board, queen_stack, next_start);
+				// if(next_start.x == (board.Width()-1)) {
+				// 	std::cout << "this was the last column in the row. need to pop back further. \n";
+				// 	next_start = queen_stack.back();
+				// 	next_start.x++;
+				// 	queen_stack.pop_back();
+				// 	findNextQueen(board, queen_stack, next_start);
+				// 	break;
+				// } else 
+				if(next_start.y == (board.Width()-1)) {
+					std::cout << "this was the last row. No solution. \n";
+					break;
+				} else {
+				//findNextQueen(board, queen_stack, next_start);
+				break;
+				}
+			}
+			
+		}
+	}
+}
+
 int
 main() {
 	try {
@@ -199,11 +270,12 @@ main() {
 		std::cout << "======================================== \n";
 		std::cout << board;
 		auto queen_Stack = QueenStack{};
-		queen_Stack.push_back(findFirstQueen(board));
+		queen_Stack.push_back(board.findFirstQueen(board));
 		std::cout << "first queen is at " << queen_Stack.back() << '\n';
 		updateAttacks(board, queen_Stack);
 		std::cout << board;
-
+		std::cout << "from function findNextQueen: \n";
+		findNextQueen(board, queen_Stack, Point{0, 0});
 
 	} catch (std::exception& ex) {
 		std::cerr << ex.what();
