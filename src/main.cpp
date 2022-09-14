@@ -144,11 +144,11 @@ operator>>(std::istream& is, Board& board) {
 
 std::ostream&
 operator<<(std::ostream& stream, const Board& board) {
-	stream << "Current board: \n";
 
 	for (auto y = 0U; y < board.Width(); y++) {
 		for (auto x = 0U; x < board.Width(); x++) {
-			stream << static_cast<int>(board[Point{x, y}]) << " | ";
+			stream << static_cast<int>(board[Point{x, y}]);
+			if (x < board.Width() - 1) std::cout << ',';
 		}
 		stream << '\n';
 	}
