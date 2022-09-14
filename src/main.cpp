@@ -290,9 +290,9 @@ findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) { // 
 						}
 						updateAttacks(board, queen_stack);
 						findNextQueen(board, queen_stack, next_start);  // if this y value has been exhausted for valid x positions for the queen
-															    // and "no solution" hasn't yet been determined then
-															    // recurse from the previous state, popping off the recent queen and
-															    // checking a new x at the previous y
+															   			// and "no solution" hasn't yet been determined, then
+															    		// recurse from the previous state, popping off the recent queen and
+															    		// checking a new x at the previous y
 						return;	
 		}			
 		}
