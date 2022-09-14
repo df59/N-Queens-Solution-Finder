@@ -31,7 +31,7 @@ operator<<(std::ostream& stream, Point const& point) {
 
 class Board {
   private:
-	std::vector<unsigned char> m_state;
+	std::vector<std::vector<unsigned char>> m_state_stack;
 	QueenStack m_queen_stack;
 	std::size_t m_width = 0UL;
 	std::size_t m_num_start_queens = 0UL;
@@ -39,36 +39,43 @@ class Board {
 
 
   public:
-	explicit Board(std::vector<unsigned char>& in_Board, std::size_t const width)
-		: m_state(in_Board), m_queen_stack(), m_width(width) {
-		assert(m_width * m_width == m_state.size());
-	}
-
 	explicit Board() = default;
+
+	void
+	clear() {
+		m_state_stack.clear();
+		m_queen_stack.clear();
+		m_state_stack.emplace_back();
+		m_width = 0UL;
+		m_num_start_queens = 0UL;
+		i = 0UL;
+	}
 
 	[[nodiscard]] std::size_t
 	Width() const {
 		return m_width;
 	}
 
-	void
-	clear() {
-		m_state.clear();
-		m_width = 0U;
+	[[nodiscard]]
+	std::vector<unsigned char>&
+	get_state() {
+		assert(!m_state_stack.empty());
+		return m_state_stack.back();
 	}
 
-	void
-	reset() {
-		std::fill(std::begin(m_state), std::end(m_state), false);
+	[[nodiscard]]
+	std::vector<unsigned char> const&
+	get_state() const {
+		assert(!m_state_stack.empty());
+		return m_state_stack.back();
 	}
-
 
 	[[nodiscard]]
 	unsigned char&
 	operator[](Point const point) {
 		assert(point.x < Width());
 		assert(point.y < Width());
-		return m_state[(m_width * point.y) + point.x];
+		return get_state()[(m_width * point.y) + point.x];
 
 	}
 
@@ -77,7 +84,7 @@ class Board {
 	operator[](Point const point) const {
 		assert(point.x < Width());
 		assert(point.y < Width());
-		return m_state[(m_width * point.y) + point.x];
+		return get_state()[(m_width * point.y) + point.x];
 
 	}
 
@@ -89,33 +96,32 @@ class Board {
 	}
 
 
-	[[nodiscard]]
-	bool
-	fully_attacked() const {
-		return std::end(m_state) == std::find(std::begin(m_state), std::end(m_state), false);
-	}
+	// [[nodiscard]]
+	// bool
+	// fully_attacked() const {
+	// 	return std::end(get_state()) == std::find(std::begin(get_state()), std::end(get_state()), false);
+	// }
 
 	[[nodiscard]]
 	bool
 	findQueens() {
-		updateAttacks();
 		for (auto y = 0U; y < Width(); y++) {
 			for (auto x = 0U; x < Width(); x++) {
 				auto const p = Point{x, y};
 				if (operator[](p) == false) {
-					// std::cout << "\t --------->" << p << '\n'; 
+					//std::cout << "\t --------->" << p << '\n'; 
 					//check square on board
 					addQueen(p);
 					if (findQueens()) {
 						return true;
 					}
-					if ((number_of_queens() == Width()) && fully_attacked()) {
+					if ((number_of_queens() == Width())) {
 						return true;
 					}
-					// std::cout << "removing queen: " << m_queen_stack.back() << '\n';
+					//std::cout << "removing queen: " << m_queen_stack.back() << '\n';
 					m_queen_stack.pop_back();
-					updateAttacks();
-					// std::cout << *this << '\n';
+					m_state_stack.pop_back();
+					// print_debug();
 				}
 			}
 		}
@@ -123,25 +129,36 @@ class Board {
 		return false;
 	}
 
-	void addQueen(Point queen) {
-	m_queen_stack.push_back(queen);
-	updateAttacks();
-	// std::cout << "adding queen at position " << queen << '\n' << *this << '\n';
-	assert(queen.x < Width());
-	assert(queen.y < Width());
+	void addQueen(Point const queen) {
+		assert(!m_queen_stack.empty());
+		assert(queen.x < Width());
+		assert(queen.y < Width());
+		assert(m_queen_stack.back().x < Width());
+		assert(m_queen_stack.back().y < Width());
 
-	assert(m_queen_stack.back().x < Width());
-	assert(m_queen_stack.back().y < Width());
+		m_queen_stack.push_back(queen);
+		//copy and push last state onto stack
+		m_state_stack.push_back(m_state_stack.back());
+		assert(m_queen_stack.size() == m_state_stack.size());
 
-}
+
+		populate_new_attacks(queen);
+		// std::cout << "adding queen at position " << queen << '\n';
+		// print_debug();
+	}
+
+	void
+	populate_first_queen_attacks() {
+		for(auto const& queen : m_queen_stack) {
+			populate_new_attacks(queen);
+		}
+	}
 
 
-void
-updateAttacks() {
-	i++;
-	assert(m_queen_stack.size() > 0);
-	reset();
-	for (auto const& queen : m_queen_stack) {
+
+	void
+	populate_new_attacks(Point const queen) {
+		i++;
 		//  vertical
 		for (auto x = 0U; x < Width(); x++) {
 			auto const point = Point{x, queen.y};
@@ -191,11 +208,27 @@ updateAttacks() {
 			point.y++;
 		}
 	}
-}
+
+	void print_debug() {
+		std::cout << "print debug: \n";
+		for(auto& j : m_queen_stack) {
+			std::cout << j << ' ';
+			operator[](j) = 2;
+		}
+		//std::cout << "\n fully attacked = " << fully_attacked() << '\n';
+		std::cout << '\n' << i << '\n';
+		for (auto y = 0U; y < Width(); y++) {
+			for (auto x = 0U; x < Width(); x++) {
+				std::cout << static_cast<int>(operator[](Point{x, y}));
+				if (x < Width() - 1) std::cout << ',';
+			}
+			std::cout << '\n';
+		}	
+	}
 
 
 	friend std::istream& operator>>(std::istream& is, Board& board);
-	friend std::ostream& operator<<(std::ostream& stream, const Board& board);
+	friend std::ostream& operator<<(std::ostream& stream, Board& board);
 };
 
 std::istream&
@@ -210,9 +243,9 @@ operator>>(std::istream& is, Board& board) {
 		if (c == ',') continue;
 		if (c == '\n' || c == '\r') {
 			if (board.m_width == 0U) {
-				board.m_width = board.m_state.size();
+				board.m_width = board.get_state().size();
 				size_Of_Board = board.m_width * board.m_width;
-				board.m_state.reserve(board.m_width * board.m_width);
+				board.get_state().reserve(board.m_width * board.m_width);
 			}
 			continue;
 		}
@@ -221,8 +254,9 @@ operator>>(std::istream& is, Board& board) {
 			is.setstate(std::ios::failbit);
 			return is;
 		}
-		board.m_state.push_back(c != '0');
-		if (board.m_state.size() == size_Of_Board) {
+		//FIXME: loads improper input
+		board.get_state().push_back(c != '0');
+		if (board.get_state().size() == size_Of_Board) {
 			break;
 		}
 	}
@@ -237,19 +271,23 @@ operator>>(std::istream& is, Board& board) {
 		}
 
 	}
+	board.populate_first_queen_attacks();
+	assert(board.get_state().size() == (board.Width()*board.Width()));
 	return is;
 }
 
 std::ostream&
-operator<<(std::ostream& stream, const Board& board) {
-	// for(auto const i : board.m_queen_stack) {
-	// 	std::cout << i << ' ';
-	// }
-	// std::cout << '\n' << board.fully_attacked() << '\n';
-	stream << '\n' << board.i << '\n';
+operator<<(std::ostream& stream, Board& board) {
+	auto state = board.get_state();
+	std::fill(state.begin(), state.end(), 0);
+	for(auto& i : board.m_queen_stack) {
+		auto index = i.y * board.Width() + i.x;
+		state[index] = 1;
+	}
 	for (auto y = 0U; y < board.Width(); y++) {
 		for (auto x = 0U; x < board.Width(); x++) {
-			stream << static_cast<int>(board[Point{x, y}]);
+			auto index = y * board.Width() + x;
+			stream << static_cast<int>(state[index]);
 			if (x < board.Width() - 1) stream << ',';
 		}
 		stream << '\n';
@@ -287,6 +325,7 @@ main() {
 		}
 		auto ofs = std::ofstream{"solution.csv"};
 		ofs << board;
+		std::cout << "========================================" << '\n' << board << '\n';
 	} catch (std::exception& ex) {
 		std::cerr << ex.what();
 	}
