@@ -80,12 +80,15 @@ class Board {
 			}
 		}
 	}	
+	assert(false);
 }
 
 
 	[[nodiscard]]
 	std::byte&
 	operator[](Point const point) {
+		assert(point.x < Width());
+		assert(point.y < Width());
 		//std::cout << "from [] overloaded operator &ref in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
 		// return m_state.at((m_width * point.y) + point.x);
 		return m_state[(m_width * point.y) + point.x];
@@ -95,6 +98,8 @@ class Board {
 	[[nodiscard]]
 	std::byte
 	operator[](Point const point) const {
+		assert(point.x < Width());
+		assert(point.y < Width());
 		//std::cout << "from [] overloaded operator in Board class: \n point.x: " << point.x << "\n point.y: " << point.y << "\n index: " << ((m_width * point.y) + point.x);
 		// return m_state.at((m_width * point.y) + point.x);
 		return m_state[(m_width * point.y) + point.x];
