@@ -174,12 +174,12 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	board.reset();
 	//std::cout << "updating attacks \n";
 	for(auto i : queen_stack) {
-	std::cout << "updating attacks for queen at: " << i.x << ',' << i.y << '\n';
+	//debug std::cout << "updating attacks for queen at: " << i.x << ',' << i.y << '\n';
 	auto const recentQueen = i;
 	//debug std::cout << "recent queen is at " << recentQueen << '\n';
 
 	for(auto x = 0U; x < board.Width();x++) {
-		std::cout << "first for loop\n";
+		//debug std::cout << "first for loop\n";
 		auto const point = Point{x, recentQueen.y};
 		assert(point.x < board.Width());
 		assert(point.y < board.Width());
@@ -188,7 +188,7 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	}
 
 	for(auto y = 0U; y < board.Width();y++) {
-		std::cout << "second for loop\n";
+		//debug std::cout << "second for loop\n";
 		auto const point = Point{recentQueen.x, y};
 		assert(point.x < board.Width());
 		assert(point.y < board.Width());
@@ -200,7 +200,7 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	auto point = Point{recentQueen.x - m, recentQueen.y - m};
 
 	while(point.x < board.Width() && point.y < board.Width()) {
-		std::cout << "first while loop\n" << "m value " << m << '\n';
+		//debug std::cout << "first while loop\n" << "m value " << m << '\n';
 		assert(point.x < board.Width());
 		assert(point.y < board.Width());
 		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
@@ -214,7 +214,7 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	
 
 	while(point.x < board.Width() && point.y < board.Width()) {
-		std::cout << "second while loop\n" << "m value " << m << '\n';// << "recentQueen.x value " << recentQueen.x << '\n' << "recentqueen.y value " << recentQueen.y << '\n';
+		//debug std::cout << "second while loop\n" << "m value " << m << '\n';// << "recentQueen.x value " << recentQueen.x << '\n' << "recentqueen.y value " << recentQueen.y << '\n';
 		assert(point.x < board.Width());
 		assert(point.y < board.Width());
 		//debug //debug std::cout << point << '\n';
@@ -230,7 +230,7 @@ void updateAttacks(Board& board, QueenStack const& queen_stack) {
 	
 
 	while(point.x < board.Width() && point.y < board.Width()) {
-		std::cout << "third while loop\n" << "big value " << big << '\n';
+		//debug std::cout << "third while loop\n" << "big value " << big << '\n';
 		assert(point.x < board.Width());
 		assert(point.y < board.Width());
 	// 	//debug std::cout << point << '\n';
@@ -253,31 +253,32 @@ void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
 	// attempt to fix bug queen_stack.reserve(queen_stack.capacity()+1);
 	assert(queen.x < board.Width());
 	assert(queen.y < board.Width());
-	std::cout << queen_stack.back().x;
-	std::cout << queen_stack.back().y;
+	//debug std::cout << queen_stack.back().x;
+	//debug std::cout << queen_stack.back().y;
 	queen_stack.push_back(queen);
 	//debug std::cout << "debug pushback worked \n";
 	assert(queen_stack.back().x < board.Width());
 	assert(queen_stack.back().y < board.Width());
-	std::cout << queen_stack.back().x;
-	std::cout << queen_stack.back().y;
+	//debug std::cout << queen_stack.back().x;
+	//debug std::cout << queen_stack.back().y;
 	updateAttacks(board, queen_stack);
 	//debug std::cout << "debug update Attacks was called \n";
 	std::cout << board;
 }
 
+void printQueens(QueenStack queen_stack) {
+	std::cout << "current queen stack: \n";
+	for(auto i : queen_stack) {
+		std::cout << '(' << i.x << ',' << i.y << ')' << '\n';
+	}
+}
+
+
 void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) {
+	printQueens(queen_stack);
 	//debug std::cout << "debug findNextQueen called \n";
 	//debug std::cout << "debug starting queen value is " << board.StartQueen().x << ',' << board.StartQueen().y << '\n';
 	//debug std::cout << "debug startingpoint.x: " << starting_point.x << "\n debug startingpoint.y: " << starting_point.y << '\n';
-	if(starting_point.y == board.StartQueen().y) {
-		std::cout << "calling function from starting queen position. this is a cycle. no solution was found \n";
-		return;
-	}
-	//  if(queen_stack.empty()) {
-	// 	std::cout << "all queens were popped off the stack. There must be no solution. \n";
-	// 	return;
-	// }
 	
 	//while(starting_point.y != board.StartQueen().y){
 	//for(auto y = starting_point.y; y != board.StartQueen().y; y = ((y + 1) % board.Width())) {
