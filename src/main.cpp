@@ -165,82 +165,59 @@ getFile(std::string const input_file) {
 	return ss;
 }
 
-void updateAttacks(Board& board, QueenStack const& queen_stack) {
+void
+updateAttacks(Board& board, QueenStack const& queen_stack) {
 	board.reset();
-	//std::cout << "updating attacks \n";
-	for(auto i : queen_stack) {
-	//debug std::cout << "updating attacks for queen at: " << i.x << ',' << i.y << '\n';
-	auto const recentQueen = i;
-	//debug std::cout << "recent queen is at " << recentQueen << '\n';
+	for (auto const& recentQueen : queen_stack) {
+		//  vertical
+		for (auto x = 0U; x < board.Width(); x++) {
+			auto const point = Point{x, recentQueen.y};
+			assert(point.x < board.Width());
+			assert(point.y < board.Width());
+			board[point] = static_cast<std::byte>(1U);
+		}
 
-	for(auto x = 0U; x < board.Width();x++) {
-		//debug std::cout << "first for loop\n";
-		auto const point = Point{x, recentQueen.y};
-		assert(point.x < board.Width());
-		assert(point.y < board.Width());
-		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
-		board[point] = static_cast<std::byte>(1U);
+		// horizontal
+		for (auto y = 0U; y < board.Width(); y++) {
+			auto const point = Point{recentQueen.x, y};
+			assert(point.x < board.Width());
+			assert(point.y < board.Width());
+			board[point] = static_cast<std::byte>(1U);
+		}
+
+		// top left to bottom right diagonal
+		auto const m = std::min(recentQueen.x, recentQueen.y);
+		auto point = Point{recentQueen.x - m, recentQueen.y - m};
+		while (point.x < board.Width() && point.y < board.Width()) {
+			assert(point.x < board.Width());
+			assert(point.y < board.Width());
+			board[point] = static_cast<std::byte>(1U);
+			point.x++;
+			point.y++;
+		}
+
+		// towards top right
+		point = Point{recentQueen.x, recentQueen.y};
+		while (point.x < board.Width()) {
+			assert(point.x < board.Width());
+			assert(point.y < board.Width());
+			board[point] = static_cast<std::byte>(1U);
+			point.x++;
+			if (point.y == 0) break;
+			point.y--;
+		}
+
+		// towards bottom left
+		point = Point{recentQueen.x, recentQueen.y};
+		while (point.y < board.Width()) {
+			assert(point.x < board.Width());
+			assert(point.y < board.Width());
+			board[point] = static_cast<std::byte>(1U);
+			if (point.x == 0) break;
+			point.x--;
+			point.y++;
+		}
 	}
-
-	for(auto y = 0U; y < board.Width();y++) {
-		//debug std::cout << "second for loop\n";
-		auto const point = Point{recentQueen.x, y};
-		assert(point.x < board.Width());
-		assert(point.y < board.Width());
-		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
-		board[point] = static_cast<std::byte>(1U);
-	}
-
-	auto const m = std::min(recentQueen.x, recentQueen.y);
-	auto point = Point{recentQueen.x - m, recentQueen.y - m};
-
-	while(point.x < board.Width() && point.y < board.Width()) {
-		//debug std::cout << "first while loop\n" << "m value " << m << '\n';
-		assert(point.x < board.Width());
-		assert(point.y < board.Width());
-		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
-		board[point] = static_cast<std::byte>(1U);
-		point.x++;
-		point.y++;
-	}
-
-	//auto const big = std::max(recentQueen.x, recentQueen.y);
-	point = Point{recentQueen.x - m, recentQueen.y + m};
-	
-
-	while(point.x < board.Width() && point.y < board.Width()) {
-		//debug std::cout << "second while loop\n" << "m value " << m << '\n';// << "recentQueen.x value " << recentQueen.x << '\n' << "recentqueen.y value " << recentQueen.y << '\n';
-		assert(point.x < board.Width());
-		assert(point.y < board.Width());
-		//debug //debug std::cout << point << '\n';
-		//debug std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
-		board[point] = static_cast<std::byte>(1U);
-		point.x++;
-		if(point.y == 0) break;
-		point.y--;
-	}
-
-	auto const big = std::max(recentQueen.x, recentQueen.y);
-	point = Point{recentQueen.x - big, recentQueen.y + big};
-	
-
-	while(point.x < board.Width() && point.y < board.Width()) {
-		//debug std::cout << "third while loop\n" << "big value " << big << '\n';
-		assert(point.x < board.Width());
-		assert(point.y < board.Width());
-	// 	//debug std::cout << point << '\n';
-	// 	std::cout << "setting board[ " << point.x << ' ' << point.y << "] to true \n"; 
-		board[point] = static_cast<std::byte>(1U);
-		point.x++;
-		if(point.y == 0) break;
-		point.y--;
-	}
-
-	
-	 }
-
-	//debug std::cout << "board after updating attacks: \n" << board;
-	
 }
 
 void addQueen(Board& board, QueenStack& queen_stack, Point queen) {
