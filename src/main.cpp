@@ -18,7 +18,6 @@ with recursive function calls.
 
 */
 
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -45,7 +44,6 @@ operator<<(std::ostream& stream, Point const& point) {
 	stream << '(' << point.x << ", " << point.y << ')';
 	return stream;
 }
-
 
 class Board {
   private:
@@ -98,7 +96,6 @@ class Board {
 	}	
 	assert(false);
 }
-
 
 	[[nodiscard]]
 	std::byte&
@@ -167,7 +164,8 @@ operator<<(std::ostream& stream, const Board& board) { // outputs formatted boar
 	return stream;
 }
 
-[[nodiscard]] std::stringstream
+[[nodiscard]] 
+std::stringstream
 getFile(std::string const input_file) { // takes in file as input
 	auto i_filestream = std::ifstream{input_file.c_str()};
 
@@ -237,7 +235,8 @@ updateAttacks(Board& board, QueenStack const& queen_stack) { // places "1" on al
 	}
 }
 
-void addFinalQueens(Board& board, QueenStack& queen_stack) { // adds the final stack of queens to the board without assigning attack vectors
+void
+addFinalQueens(Board& board, QueenStack& queen_stack) { // adds the final stack of queens to the board without assigning attack vectors
 		board.reset();
 		while(!queen_stack.empty()) {
 		board[queen_stack.back()] = static_cast<std::byte>(1U);
@@ -246,7 +245,8 @@ void addFinalQueens(Board& board, QueenStack& queen_stack) { // adds the final s
 
 }
 
-void addQueen(Board& board, QueenStack& queen_stack, Point queen) { // adds a queen to the queen stack and calls updateAttacks
+void
+addQueen(Board& board, QueenStack& queen_stack, Point queen) { // adds a queen to the queen stack and calls updateAttacks
 	assert(queen.x < board.Width());
 	assert(queen.y < board.Width());
 	queen_stack.push_back(queen);
@@ -255,7 +255,8 @@ void addQueen(Board& board, QueenStack& queen_stack, Point queen) { // adds a qu
 	updateAttacks(board, queen_stack);
 }
 
-void printQueens(QueenStack queen_stack) { // prints the contents of the current stack of valid queens
+void
+printQueens(QueenStack queen_stack) { // prints the contents of the current stack of valid queens
 	std::cout << "current queen stack: \n";
 	for(auto i : queen_stack) {
 		std::cout << '(' << i.x << ',' << i.y << ')' << '\n';
@@ -263,8 +264,8 @@ void printQueens(QueenStack queen_stack) { // prints the contents of the current
 
 }
 
-
-void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) { // iterates across x and recurses across y
+void
+findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) { // iterates across x and recurses across y
 		for(auto x = starting_point.x; x != board.StartQueen().x; x = (x + 1) % (board.Width())) {
 			auto point = Point{x, starting_point.y};
 			if(static_cast<unsigned>(board[point]) == 0U) {
@@ -278,28 +279,24 @@ void findNextQueen(Board& board, QueenStack& queen_stack, Point starting_point) 
 				findNextQueen(board, queen_stack, point); // recurse at next y if valid queen is found and is not the final queen to the solution
 				}
 			} else if((x + 1) % board.Width() == board.StartQueen().x && (queen_stack.size() != board.Width() && !queen_stack.empty()) ) {
-			
-				std::cout << "no valid space in this row. need to pop the stack to a previous state. \n";
-				Point next_start;
-				next_start.x = (queen_stack.back().x + 1) % board.Width();
-				next_start.y = queen_stack.back().y;
-				queen_stack.pop_back();
-				if(queen_stack.empty()) {
-					std::cout << "all queens were popped off the stack. There must be no solution. \n";
-					return;
-				}
-				updateAttacks(board, queen_stack);
-				findNextQueen(board, queen_stack, next_start);  // if this y value has been exhausted for valid x positions for the queen
+						std::cout << "no valid space in this row. need to pop the stack to a previous state. \n";
+						Point next_start;
+						next_start.x = (queen_stack.back().x + 1) % board.Width();
+						next_start.y = queen_stack.back().y;
+						queen_stack.pop_back();
+						if(queen_stack.empty()) {
+							std::cout << "all queens were popped off the stack. There must be no solution. \n";
+							return;
+						}
+						updateAttacks(board, queen_stack);
+						findNextQueen(board, queen_stack, next_start);  // if this y value has been exhausted for valid x positions for the queen
 															    // and "no solution" hasn't yet been determined then
 															    // recurse from the previous state, popping off the recent queen and
 															    // checking a new x at the previous y
-				return;
-				
+						return;	
 		}			
 		}
 		return;
-
-
 }
 
 int
