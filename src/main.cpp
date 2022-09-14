@@ -12,11 +12,6 @@
 #include <vector>
 #include <stack>
 
-int getFileSize();
-int* getRawInput(int*);
-int resizeArray();
-int* fillResized(int*, int*, int);
-
 enum BitTypes : char {
 	QUEEN = 1U,
 	ATTACKED = 1U,
