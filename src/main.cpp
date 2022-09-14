@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -34,6 +35,7 @@ class Board {
 	QueenStack m_queen_stack;
 	std::size_t m_width = 0UL;
 	std::size_t m_num_start_queens = 0UL;
+	std::size_t i = 0UL;
 
 
   public:
@@ -79,32 +81,70 @@ class Board {
 
 	}
 
+
+	[[nodiscard]]
+	std::size_t
+	number_of_queens () const {
+		return m_queen_stack.size();
+	}
+
+
+	[[nodiscard]]
+	bool
+	fully_attacked() const {
+		return std::end(m_state) == std::find(std::begin(m_state), std::end(m_state), false);
+	}
+
+	[[nodiscard]]
+	bool
+	findQueens() {
+		updateAttacks();
+		for (auto y = 0U; y < Width(); y++) {
+			for (auto x = 0U; x < Width(); x++) {
+				auto const p = Point{x, y};
+				if (operator[](p) == false) {
+					// std::cout << "\t --------->" << p << '\n'; 
+					//check square on board
+					addQueen(p);
+					if (findQueens()) {
+						return true;
+					}
+					if ((number_of_queens() == Width()) && fully_attacked()) {
+						return true;
+					}
+					// std::cout << "removing queen: " << m_queen_stack.back() << '\n';
+					m_queen_stack.pop_back();
+					updateAttacks();
+					// std::cout << *this << '\n';
+				}
+			}
+		}
+
+		return false;
+	}
+
 	void addQueen(Point queen) {
-	std::cout << "adding queen at position " << queen << '\n';
-	// attempt to fix bug m_queen_stack.reserve(m_queen_stack.capacity()+1);
+	m_queen_stack.push_back(queen);
+	updateAttacks();
+	// std::cout << "adding queen at position " << queen << '\n' << *this << '\n';
 	assert(queen.x < Width());
 	assert(queen.y < Width());
-	//debug std::cout << m_queen_stack.back().x;
-	//debug std::cout << m_queen_stack.back().y;
-	m_queen_stack.push_back(queen);
-	//debug std::cout << "debug pushback worked \n";
+
 	assert(m_queen_stack.back().x < Width());
 	assert(m_queen_stack.back().y < Width());
-	//debug std::cout << m_queen_stack.back().x;
-	//debug std::cout << m_queen_stack.back().y;
-	updateAttacks();
-	//debug std::cout << "debug update Attacks was called \n";
-	//debug std::cout << board;
+
 }
 
 
 void
 updateAttacks() {
+	i++;
+	assert(m_queen_stack.size() > 0);
 	reset();
-	for (auto const& recentQueen : m_queen_stack) {
+	for (auto const& queen : m_queen_stack) {
 		//  vertical
 		for (auto x = 0U; x < Width(); x++) {
-			auto const point = Point{x, recentQueen.y};
+			auto const point = Point{x, queen.y};
 			assert(point.x < Width());
 			assert(point.y < Width());
 			operator[](point)= true;
@@ -112,15 +152,15 @@ updateAttacks() {
 
 		// horizontal
 		for (auto y = 0U; y < Width(); y++) {
-			auto const point = Point{recentQueen.x, y};
+			auto const point = Point{queen.x, y};
 			assert(point.x < Width());
 			assert(point.y < Width());
 			operator[](point) = true;
 		}
 
 		// top left to bottom right diagonal
-		auto const m = std::min(recentQueen.x, recentQueen.y);
-		auto point = Point{recentQueen.x - m, recentQueen.y - m};
+		auto const m = std::min(queen.x, queen.y);
+		auto point = Point{queen.x - m, queen.y - m};
 		while (point.x < Width() && point.y < Width()) {
 			assert(point.x < Width());
 			assert(point.y < Width());
@@ -130,7 +170,7 @@ updateAttacks() {
 		}
 
 		// towards top right
-		point = Point{recentQueen.x, recentQueen.y};
+		point = Point{queen.x, queen.y};
 		while (point.x < Width()) {
 			assert(point.x < Width());
 			assert(point.y < Width());
@@ -141,7 +181,7 @@ updateAttacks() {
 		}
 
 		// towards bottom left
-		point = Point{recentQueen.x, recentQueen.y};
+		point = Point{queen.x, queen.y};
 		while (point.y < Width()) {
 			assert(point.x < Width());
 			assert(point.y < Width());
@@ -202,11 +242,15 @@ operator>>(std::istream& is, Board& board) {
 
 std::ostream&
 operator<<(std::ostream& stream, const Board& board) {
-
+	// for(auto const i : board.m_queen_stack) {
+	// 	std::cout << i << ' ';
+	// }
+	// std::cout << '\n' << board.fully_attacked() << '\n';
+	stream << '\n' << board.i << '\n';
 	for (auto y = 0U; y < board.Width(); y++) {
 		for (auto x = 0U; x < board.Width(); x++) {
 			stream << static_cast<int>(board[Point{x, y}]);
-			if (x < board.Width() - 1) std::cout << ',';
+			if (x < board.Width() - 1) stream << ',';
 		}
 		stream << '\n';
 	}
@@ -229,13 +273,6 @@ getFile(std::string const input_file) {
 }
 
 
-void printQueens(QueenStack m_queen_stack) {
-	std::cout << "current queen stack: \n";
-	for(auto i : m_queen_stack) {
-		std::cout << '(' << i.x << ',' << i.y << ')' << '\n';
-	}
-}
-
 int
 main() {
 	try {
@@ -244,6 +281,12 @@ main() {
 		content_Of_File >> board;
 		std::cout << "======================================== \n";
 		std::cout << board;
+		if(!board.findQueens()) {
+			std::cerr << "No solution found. \n";
+			return EXIT_FAILURE;
+		}
+		auto ofs = std::ofstream{"solution.csv"};
+		ofs << board;
 	} catch (std::exception& ex) {
 		std::cerr << ex.what();
 	}
