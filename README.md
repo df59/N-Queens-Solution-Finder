@@ -2,7 +2,7 @@ N-Queens Solution Finder,
 Dustin Franklin,
 df59@uakron.edu
 
-Given a N*N board with the inital position of one queen, finds a possible solution for the arrangement of N queens
+Given a N*N chess board with the inital position of one queen, finds a possible solution for the arrangement of N queens
 such that no queen is currently threatened by a direct attack from another queen. If no solution exists, outputs
 "No solution".
 
