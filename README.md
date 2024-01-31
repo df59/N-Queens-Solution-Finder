@@ -1,5 +1,5 @@
-N-Queens Solution Finder
-Dustin Franklin
+N-Queens Solution Finder,
+Dustin Franklin,
 df59@uakron.edu
 
 Given a N*N board with the inital position of one queen, finds a possible solution for the arrangement of N queens
